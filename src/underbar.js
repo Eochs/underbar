@@ -384,6 +384,16 @@
   // Calls the method named by functionOrKey on each value in the list.
   // Note: You will need to learn a bit about .apply to complete this.
   _.invoke = function(collection, functionOrKey, args) {
+    
+    return _.map(collection, function(item) {
+      // test whether it is a function, or a key to get a function
+      var func = (typeof functionOrKey === 'function') ? functionOrKey : item[functionOrKey];
+      //if (func == null) { return null; } 
+      // call the function | method on args using the item as the context
+      if (typeof func === 'function') { return func.apply(item, args); }
+      else { return func; }
+    });
+      
   };
 
   // Sort the object's values by a criterion produced by an iterator.
@@ -391,6 +401,21 @@
   // of that string. For example, _.sortBy(people, 'name') should sort
   // an array of people by their name.
   _.sortBy = function(collection, iterator) {
+    var values;
+    if (typeof iterator === 'string')
+      values = _.invoke(collection, iterator);
+    else 
+      values = _.map(collection, iterator);
+    var tuples = _.zip(collection, values);
+    console.log(values, tuples);
+    var sorted_tuples = tuples.sort(function(a,b) {
+      if (a[1] === undefined && b[1] === undefined) return 0;
+      if (a[1] === undefined) return 1; // puts undefined to last
+      if (b[1] === undefined) return -1;
+      return a[1] - b[1];
+    });
+    return _.pluck(sorted_tuples, 0);
+    
   };
 
   // Zip together two or more arrays with elements of the same index
@@ -399,23 +424,75 @@
   // Example:
   // _.zip(['a','b','c','d'], [1,2,3]) returns [['a',1], ['b',2], ['c',3], ['d',undefined]]
   _.zip = function() {
+    if (arguments.length <= 1) 
+      return arguments;
+
+    var zipped = [];
+
+    for (var i = 0; i < arguments[0].length; i++) {
+      zipped.push( [] );
+
+      for (var arr = 0; arr < arguments.length; arr++) {
+        zipped[i].push( arguments[arr][i] );
+      }
+    }
+
+    return zipped;
   };
 
   // Takes a multidimensional array and converts it to a one-dimensional array.
   // The new array should contain all elements of the multidimensional array.
   //
   // Hint: Use Array.isArray to check if something is an array
-  _.flatten = function(nestedArray, result) {
+  _.flatten = function(nestedArray, startIndex, result) {
+    var flattened = [];
+    startIndex = startIndex ? startIndex : 0;
+    for (var i = startIndex; i < nestedArray.length; i++){
+    //_.each(nestedArray, function(item){
+      if (Array.isArray(nestedArray[i])) {
+        flattened = flattened.concat( _.flatten(nestedArray[i]) );
+      } else {
+        flattened.push(nestedArray[i]);
+      }
+    }//);
+
+    return flattened;
+
   };
 
   // Takes an arbitrary number of arrays and produces an array that contains
   // every item shared between all the passed-in arrays.
   _.intersection = function() {
+    var n = arguments.length;
+    var elems = {};
+    var items_shared_by_all = [];
+
+    _.each(arguments, function(ith_array) {
+      _.reduce(ith_array, function(acc, elem) {
+        acc[elem] = (elem in acc)? acc[elem] + 1 : 1;
+        return acc;
+      }, elems);
+    });
+
+    _.each(elems, function(value, key) {
+      if (value === n) { // each array had this key
+        items_shared_by_all.push( key );
+      }
+    });
+
+    return items_shared_by_all;
   };
 
   // Take the difference between one array and a number of other arrays.
   // Only the elements present in just the first array will remain.
   _.difference = function(array) {
+    var rest = _.flatten(arguments, 1); //flatten all arguments after first array
+    var elems_left = _.filter(array, function(value){
+      //console.log("is value in rest of arguments?" + !_contains(rest, value));
+      var test = (_.indexOf(rest, value) > -1);
+      return !_.contains(rest, value);
+    });
+    return elems_left;
   };
 
   // Returns a function, that, when invoked, will only be triggered at most once
@@ -424,5 +501,28 @@
   //
   // Note: This is difficult! It may take a while to implement.
   _.throttle = function(func, wait) {
+    var args = Array.prototype.slice.call(arguments, 2); // get arguments following func & wait
+    var last_called = new Date().getTime();
+    var cached_result = func.apply(null, args);
+
+    // throttledFunc checks that the last called 
+    var throttledFunc = function() {
+      var curr_time = new Date().getTime();
+
+      if (curr_time > last_called + wait) {
+        last_called = curr_time;
+        cached_result = func.apply(null, args);
+      } else {
+        // if func called during 'wait' period, just give back previous value without recomputing
+        return cached_result;
+      }
+
+    };
+
+    return throttledFunc;
   };
+
+
+
+
 }());
