@@ -170,15 +170,15 @@
   //   }); // should be 5, regardless of the iterator function passed in
   //          No accumulator is given so the first element is used.
   _.reduce = function(collection, iterator, accumulator) {
-    var array_of_values = _.map(collection, _.identity);
+    var have_accumulator = (arguments.length > 2);
 
-    if (accumulator === undefined) {
-      accumulator = array_of_values[0];
-      array_of_values = _.last(array_of_values, array_of_values.length - 1);
-    }
-
-    _.each(array_of_values, function(item){
-      accumulator = iterator(accumulator, item);
+    _.each(collection, function(item){
+      if (!have_accumulator) {
+        accumulator = item;
+        have_accumulator = true;
+      } else {
+        accumulator = iterator(accumulator, item);
+      }
     });
 
     return accumulator;
