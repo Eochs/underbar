@@ -211,7 +211,7 @@
   // provided, provide a default one
   _.some = function(collection, iterator) {
     // TIP: There's a very clever way to re-use every() here.
-    iterator = iterator === undefined ? _.identity : iterator;
+    iterator = iterator || _.identity;
 
     return !(_.every(collection, function(item) {
       return !iterator(item);
@@ -264,7 +264,7 @@
       _.each(obj_i, function(item, key) {
         if (obj[key] === undefined){
           obj[key] = item;
-        } 
+        }
       });
     }
 
@@ -393,7 +393,7 @@
       //if (func == null) { return null; } 
       // call the function | method on args using the item as the context
       if (typeof func === 'function') { return func.apply(item, args); }
-      else { return func; }
+      else { return func; } // func is value at the key 'functionOrKey'
     });
       
   };
