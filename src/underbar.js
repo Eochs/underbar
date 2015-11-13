@@ -102,7 +102,8 @@
   _.uniq = function(array) {
     var unique_elements = [];
     var elements_set = {};
-
+    // implement to be stable sorting of uniques
+    // so first elem is kept in place, and subsequent duplicates are deleted
     _.each(array, function(item) {
       if (item in elements_set) {
         ; // do nothing
@@ -115,6 +116,8 @@
   };
 
 
+
+
   // Return the results of applying an iterator to each element.
   _.map = function(collection, iterator) {
     // map() is a useful primitive iteration function that works a lot
@@ -122,8 +125,8 @@
     // the members, it also maintains an array of results.
     var transformed_array = [];
 
-    _.each(collection, function(item) {
-      transformed_array.push( iterator(item) );
+    _.each(collection, function(item, key, collection) {
+      transformed_array.push( iterator(item, key, collection) );
     });
     return transformed_array;
   };
